@@ -35,8 +35,35 @@ export function Dashboard() {
     gateEntryCount: 0
   });
 
+  // State to hold Day 3 event counts
+  const [day3EventCounts, setDay3EventCounts] = useState<{ [key: string]: number }>({});
+
   const handleSignOut = async () => {
     window.location.reload();
+  };
+
+  // Function to fetch Day 3 event counts
+  const fetchEventCounts = async () => {
+    const { data, error } = await supabase
+      .from('Participants') // Ensure you are querying the correct table
+      .select('Event_1_Day3, Event_2_Day3, Event_3_Day3, Event_4_Day3');
+
+    if (error) {
+      console.error("Error fetching data:", error);
+      return;
+    }
+
+    let eventCounts: { [key: string]: number } = {};
+
+    data.forEach(row => {
+      [row.Event_1_Day3, row.Event_2_Day3, row.Event_3_Day3, row.Event_4_Day3].forEach(event => {
+        if (event) {
+          eventCounts[event] = (eventCounts[event] || 0) + 1;
+        }
+      });
+    });
+
+    setDay3EventCounts(eventCounts); // Update state with fetched counts
   };
 
   useEffect(() => {
@@ -90,11 +117,10 @@ export function Dashboard() {
 day4Data?.forEach(participant => {
   const eventName = participant.Event_1_Day4;
   
-  if (eventName && eventName.startsWith("W -")) {
+  if (eventName && eventName.startsWith("")) {
     day4Events[eventName] = (day4Events[eventName] || 0) + 1;
   }
 });
-
 
       // Get referral sources for successful payments, including null values as "Others"
       const { data: referralData } = await supabase
@@ -125,6 +151,7 @@ day4Data?.forEach(participant => {
     }
 
     fetchStats();
+    fetchEventCounts(); // Fetch event counts on component mount
   }, []);
 
   const referralData = Object.entries(stats.referralSources)
@@ -250,18 +277,43 @@ day4Data?.forEach(participant => {
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4">Day 4 Workshop Distribution</h2>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={workshopData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="value" fill="#3B82F6" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          <h2 className="text-xl font-semibold mb-4">Day 4 Event Counts</h2>
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event Name</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Count</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {Object.entries(stats.day4Events).map(([eventName, count]) => (
+                <tr key={eventName}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{eventName}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{count}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-semibold mb-4">Day 3 Event Counts</h2>
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event Name</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Count</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {Object.entries(day3EventCounts).map(([eventName, count]) => (
+                <tr key={eventName}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{eventName}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{count}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
