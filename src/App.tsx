@@ -32,7 +32,25 @@ function App() {
 
   return (
     <div>
+      <GoogleOAuthProvider clientId="229767748895-ajb9svov5m07j4l46054h7rj48jrulfq.apps.googleusercontent.com">
+        {!isLoggedIn ? (
+          // Show Google Login button if not logged in
+          <div style={{height:"100vh", display:"flex"}} className='justify-center items-center'>
+            <div>
+              <p className='text-3xl font-bold'>Kanam25 Admin Dashboard</p>
+              <div>
+              <GoogleLogin onSuccess={handleSuccess} onError={(error) => console.error(error)} />
+              </div>
+            
+            </div>
+
+          </div>
+          
+        ) : (
+          // Show Dashboard if logged in
           <Dashboard />
+        )}
+      </GoogleOAuthProvider>
     </div>
   );
 }
